@@ -1,0 +1,6 @@
+@DevSecOps.Utilities.WebApi_HostAddress = http://localhost:5179
+
+GET {{DevSecOps.Utilities.WebApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
