@@ -1,7 +1,7 @@
 ﻿using System;
 using Newtonsoft.Json;
 
-namespace DevSecOps.Utilities.WebApi.Model
+namespace DevSecOps.Utilities.Infra.Model
 {
 	public class DevSecOpsProjectModel
 	{

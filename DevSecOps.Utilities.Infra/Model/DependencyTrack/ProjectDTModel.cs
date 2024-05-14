@@ -1,7 +1,7 @@
 ﻿using System;
 using Newtonsoft.Json;
 
-namespace DevSecOps.Utilities.WebApi.Model.DependencyTrack
+namespace DevSecOps.Utilities.Infra.Model.DependencyTrack
 {
 
     // Root myDeserializedClass = JsonConvert.DeserializeObject<Root>(myJsonResponse);

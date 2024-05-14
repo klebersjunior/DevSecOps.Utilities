@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Reflection.PortableExecutable;
-using DevSecOps.Utilities.WebApi.Model.DefectDojo;
-using DevSecOps.Utilities.WebApi.Model.DependencyTrack;
-using DevSecOps.Utilities.WebApi.Service;
+using DevSecOps.Utilities.Infra.Model.DependencyTrack;
 using Newtonsoft.Json;
+using DevSecOps.Utilities.Infra.Service;
 
 
-namespace DevSecOps.Utilities.WebApi.Services.DependencyTrack
+namespace DevSecOps.Utilities.Infra.Services.DependencyTrack
 {
 	public class DependencyTrackService
 	{

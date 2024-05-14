@@ -1,5 +1,5 @@
 ﻿using System;
-namespace DevSecOps.Utilities.WebApi.Model.DependencyTrack
+namespace DevSecOps.Utilities.Infra.Model.DependencyTrack
 {
 	public class ProjectUploadModel
 	{

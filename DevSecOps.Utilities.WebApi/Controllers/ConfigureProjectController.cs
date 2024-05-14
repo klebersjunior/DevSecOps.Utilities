@@ -4,14 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using DevSecOps.Utilities.WebApi.Model;
-using DevSecOps.Utilities.WebApi.Model.DefectDojo;
-using DevSecOps.Utilities.WebApi.Model.DependencyTrack;
-using DevSecOps.Utilities.WebApi.Services.DefectDojo;
-using DevSecOps.Utilities.WebApi.Services.DependencyTrack;
+using DevSecOps.Utilities.Infra.Model;
+using DevSecOps.Utilities.Infra.Model.DefectDojo;
+using DevSecOps.Utilities.Infra.Model.DependencyTrack;
+using DevSecOps.Utilities.Infra.Services.DefectDojo;
+using DevSecOps.Utilities.Infra.Services.DependencyTrack;
+using DevSecOps.Utilities.Infra.Util;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using DevSecOps.Utilities.WebApi.Util;
 
 namespace DevSecOps.Utilities.WebApi.Controllers
 {

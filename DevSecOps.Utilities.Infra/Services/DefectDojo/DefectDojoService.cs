@@ -1,11 +1,13 @@
 ﻿using System;
 using System.IO;
 using System.Reflection.PortableExecutable;
-using DevSecOps.Utilities.WebApi.Model.DefectDojo;
-using DevSecOps.Utilities.WebApi.Service;
+using DevSecOps.Utilities.Infra.Model.DefectDojo;
+using DevSecOps.Utilities.Infra;
 using Newtonsoft.Json;
+using DevSecOps.Utilities.Infra.Service;
+using Microsoft.AspNetCore.Http;
 
-namespace DevSecOps.Utilities.WebApi.Services.DefectDojo
+namespace DevSecOps.Utilities.Infra.Services.DefectDojo
 {
 	public class DefectDojoService
 	{

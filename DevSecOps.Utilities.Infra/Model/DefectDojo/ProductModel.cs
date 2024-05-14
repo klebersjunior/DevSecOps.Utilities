@@ -1,7 +1,7 @@
 ﻿using System;
 using Newtonsoft.Json;
 
-namespace DevSecOps.Utilities.WebApi.Model.DefectDojo
+namespace DevSecOps.Utilities.Infra.Model.DefectDojo
 {
 	public class ProductModel
     {

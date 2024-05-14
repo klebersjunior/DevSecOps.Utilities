@@ -2,7 +2,7 @@
 using System.Net.Http.Headers;
 using System.Text;
 
-namespace DevSecOps.Utilities.WebApi.Service
+namespace DevSecOps.Utilities.Infra.Service
 {
     public class HttpService
     {

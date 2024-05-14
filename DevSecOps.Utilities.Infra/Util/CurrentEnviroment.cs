@@ -1,7 +1,7 @@
 using System;
 using System.Text;
 
-namespace DevSecOps.Utilities.WebApi.Util
+namespace DevSecOps.Utilities.Infra.Util
 {
     public static class UtilEnviroment
     {
