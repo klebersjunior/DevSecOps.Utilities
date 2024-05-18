@@ -25,6 +25,15 @@ namespace DevSecOps.Utilities.Infra.Util
             return Environment.GetEnvironmentVariable("DependencyTrackToken");
         }
 
+        public static string AzDevOpsUrl()
+        {
+            return Environment.GetEnvironmentVariable("AzDevOpsUrl");
+        }
+
+        public static string AzDevOpsToken()
+        {
+            return Environment.GetEnvironmentVariable("AzDevOpsToken");
+        }
     }
 }
 

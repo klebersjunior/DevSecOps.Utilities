@@ -30,9 +30,23 @@ namespace DevSecOps.Utilities.Infra.Services.AzDevOps
             var parameters = new Dictionary<string, string>();
 
             var headers = new Dictionary<string, string>();
-            headers.Add("Authorization", Conversor.EncodeToBase64($"Basic:{token}"));
+            headers.Add("Authorization", $"Basic {Conversor.EncodeToBase64($"Basic:{token}")}");
 
             var response = httpService.GetApiAsync($"https://advsec.{urlBase}/{projectName}/_apis/alert/repositories/{repositoryName}/alerts?api-version=7.2-preview.1&criteria.onlyDefaultBranchAlerts=true&criteria.states=active", parameters, headers).Result;
+
+            AzDevOpsAlertsResult products = JsonConvert.DeserializeObject<AzDevOpsAlertsResult>(response);
+
+            return products;
+        }
+
+        public AzDevOpsAlertsResult GetClosedAlertsProject(string projectName, string repositoryName)
+        {
+            var parameters = new Dictionary<string, string>();
+
+            var headers = new Dictionary<string, string>();
+            headers.Add("Authorization", $"Basic {Conversor.EncodeToBase64($"Basic:{token}")}");
+
+            var response = httpService.GetApiAsync($"https://advsec.{urlBase}/{projectName}/_apis/alert/repositories/{repositoryName}/alerts?api-version=7.2-preview.1&criteria.onlyDefaultBranchAlerts=true&criteria.states=fixed", parameters, headers).Result;
 
             AzDevOpsAlertsResult products = JsonConvert.DeserializeObject<AzDevOpsAlertsResult>(response);
 
@@ -44,7 +58,7 @@ namespace DevSecOps.Utilities.Infra.Services.AzDevOps
             var parameters = new Dictionary<string, string>();
 
             var headers = new Dictionary<string, string>();
-            headers.Add("Authorization", Conversor.EncodeToBase64($"Basic:{token}"));
+            headers.Add("Authorization", $"Basic {Conversor.EncodeToBase64($"Basic:{token}")}");
 
             var response = httpService.GetApiAsync($"https://{urlBase}//_apis/projects?api-version=5.0", parameters, headers).Result;
 
@@ -58,7 +72,7 @@ namespace DevSecOps.Utilities.Infra.Services.AzDevOps
             var parameters = new Dictionary<string, string>();
 
             var headers = new Dictionary<string, string>();
-            headers.Add("Authorization", Conversor.EncodeToBase64($"Basic:{token}"));
+            headers.Add("Authorization", $"Basic {Conversor.EncodeToBase64($"Basic:{token}")}");
 
             var response = httpService.GetApiAsync($"https://{urlBase}/{projectName}/_apis/git/repositories?api-version=7.2-preview.1", parameters, headers).Result;
 

@@ -81,7 +81,7 @@ namespace DevSecOps.Utilities.Infra.Services.DefectDojo
             EngagementModel engagementModel = new EngagementModel {
                 Active = true,
                 Name = $"{projectName}_{typeEngagement}",
-                Lead = product.TeamManager.HasValue ? product.TeamManager.Value : 2,
+                Lead = product.TeamManager.HasValue ? product.TeamManager.Value : 1,
                 Product = product.Id,
                 TargetStart = DateTime.Now.ToString("yyyy-MM-dd"),
                 TargetEnd = DateTime.Now.ToString("yyyy-MM-dd"),
@@ -91,6 +91,71 @@ namespace DevSecOps.Utilities.Infra.Services.DefectDojo
 
             var response = httpService.PostApiAsync(urlBase + "/api/v2/engagements/", JsonConvert.SerializeObject(engagementModel), headers: headers).Result;
             return JsonConvert.DeserializeObject<EngagementModel>(response);
+
+        }
+
+        public DDCloseFindingRequestModel CloseFinding(string findingId)
+        {
+            var headers = new Dictionary<string, string>();
+            headers.Add("Authorization", $"Token {token}");
+
+            DDCloseFindingRequestModel model = new DDCloseFindingRequestModel
+            {
+                duplicate = false,
+                false_p = false,
+                is_mitigated = true,
+                out_of_scope = false,
+                mitigated = DateTime.Now
+            };
+
+             var response = httpService.PostApiAsync(urlBase + $"/api/v2/findings/{findingId}/close/", JsonConvert.SerializeObject(model), headers: headers).Result;
+            return JsonConvert.DeserializeObject<DDCloseFindingRequestModel>(response);
+
+        }
+
+        public DDCreateFindingResponseModel CreateFinding(DDCreateFindingRequestModel finding)
+        {
+            var headers = new Dictionary<string, string>();
+            headers.Add("Authorization", $"Token {token}");
+
+            switch (finding.Severity)
+            {
+                case "Critical":
+                    finding.NumericalSeverity = "S0";
+                    break;
+                case "High":
+                    finding.NumericalSeverity = "S1";
+                    break;
+
+                case "Medium":
+                    finding.NumericalSeverity = "S2";
+                    break;
+
+                case "Low":
+                    finding.NumericalSeverity = "S3";
+                    break;
+
+                default:
+                    finding.NumericalSeverity = "S4";
+                    break;
+            }
+
+            var response = httpService.PostApiAsync(urlBase + "/api/v2/findings/", JsonConvert.SerializeObject(finding), headers: headers).Result;
+            return JsonConvert.DeserializeObject<DDCreateFindingResponseModel>(response);
+
+        }
+
+
+        public DDSearchFindingModel SearchFindingByExternalId(string externalId)
+        {
+            var parameters = new Dictionary<string, string>();
+            parameters.Add("unique_id_from_tool", externalId);
+
+            var headers = new Dictionary<string, string>();
+            headers.Add("Authorization", $"Token {token}");
+
+            var response = httpService.GetApiAsync(urlBase + "/api/v2/findings/", parameters, headers).Result;
+            return JsonConvert.DeserializeObject<DDSearchFindingModel>(response);
 
         }
 
@@ -126,13 +191,16 @@ namespace DevSecOps.Utilities.Infra.Services.DefectDojo
                 case "truflehog":
                     typeScanId = 165;
                     break;
+                case "AzDevOpsAdvancedSecurity":
+                    typeScanId = 188;
+                    break;
                 default:
                     break;
             }
 
             TestModel engagementModel = new TestModel
             {
-                Lead = product.TeamManager.HasValue ? product.TeamManager.Value : 2,
+                Lead = product.TeamManager.HasValue ? product.TeamManager.Value : 1,
                 Engagement = engagement.Id,
                 Title = $"{projectName}_{typeEngagement}",
                 TargetStart = DateTime.Now,
@@ -298,6 +366,7 @@ namespace DevSecOps.Utilities.Infra.Services.DefectDojo
 
         }
 
+        
     }
 }
 

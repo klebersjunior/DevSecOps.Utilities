@@ -52,7 +52,10 @@ namespace DevSecOps.Utilities.Infra.Service
                             }
                             else
                             {
-                                throw new Exception($"{response.StatusCode.ToString()} - {response.Content.ReadAsStringAsync().Result}");
+                                using (HttpContent content = response.Content)
+                                {
+                                    result = await content.ReadAsStringAsync();
+                                }
                             }
                         }
                     }
