@@ -9,6 +9,7 @@ using DevSecOps.Utilities.Infra.Model.DefectDojo;
 using DevSecOps.Utilities.Infra.Model.DependencyTrack;
 using DevSecOps.Utilities.Infra.Services.DefectDojo;
 using DevSecOps.Utilities.Infra.Services.DependencyTrack;
+using DevSecOps.Utilities.Infra.Services.Trufflehog;
 using DevSecOps.Utilities.Infra.Util;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -139,9 +140,50 @@ namespace DevSecOps.Utilities.WebApi.Controllers
                 //upload file result
                 await defectDojoService.ReimportScan(test, importFile);
             }
+        }
 
+        [HttpPost("scantrufflehog")]
+        public async Task scantrufflehog([FromQuery] string projectName, [FromQuery] string gitUrl)
+        {
+            DefectDojoService defectDojoService = new DefectDojoService(UtilEnviroment.DefectDojoUrl(), UtilEnviroment.DefectDojoToken());
+            string importType ="trufflehog";
+            //Create DefectDojo Project
+            var projectInfo = defectDojoService.SearchProject(projectName);
+            ProductModel product;
+            if (projectInfo.Count == 0)
+            {
+                product = defectDojoService.CreateProject(projectName);
+            }
+            else
+            {
+                product = projectInfo.Results.FirstOrDefault();
+            }
 
-            
+            //Create DD Engagement
+            var engagementInfo = defectDojoService.SearchEngagement(projectName, importType);
+            EngagementModel engagement;
+            if (engagementInfo.Count == 0)
+            {
+                engagement = defectDojoService.CreateEngagement(product.Name, importType, product);
+            }
+            else {
+                engagement = engagementInfo.Results.FirstOrDefault();
+            }
+
+            //Create DD Test
+            var testInfo = defectDojoService.SearchTest(projectName, engagement);
+            TestModel test;
+            if (testInfo.Count == 0)
+            {
+                test = defectDojoService.CreateTest(product.Name, importType, product, engagement);
+            }
+            else
+            {
+                test = testInfo.Results.FirstOrDefault();
+            }
+
+            TrufflehogService trufflehogService = new TrufflehogService(gitUrl,UtilEnviroment.GitUser(),UtilEnviroment.GitPass());
+            var result = trufflehogService.ExecuteScan(test);            
         }
     }
 }

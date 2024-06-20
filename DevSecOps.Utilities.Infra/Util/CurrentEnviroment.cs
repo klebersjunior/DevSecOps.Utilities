@@ -34,6 +34,16 @@ namespace DevSecOps.Utilities.Infra.Util
         {
             return Environment.GetEnvironmentVariable("AzDevOpsToken");
         }
+
+        public static string GitUser()
+        {
+            return Environment.GetEnvironmentVariable("GitUser");
+        }
+
+        public static string GitPass()
+        {
+            return Environment.GetEnvironmentVariable("GitPass");
+        }
     }
 }
 
