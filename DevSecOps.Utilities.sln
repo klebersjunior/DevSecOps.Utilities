@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DevSecOps.Utilities.Infra",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DevSecOps.Utilities.SyncAzDevOpsDefectDojo", "DevSecOps.Utilities.SyncAzDevOpsDefectDojo\DevSecOps.Utilities.SyncAzDevOpsDefectDojo.csproj", "{5668070F-E169-4717-AC9D-E25297AEF955}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevSecOps.Utilities.RunAllProjects", "DevSecOps.Utilities.RunAllProjects\DevSecOps.Utilities.RunAllProjects.csproj", "{16492196-280D-442A-902C-11CF85118BF3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DevSecOps.Utilities.RunAllProjects", "DevSecOps.Utilities.RunAllProjects\DevSecOps.Utilities.RunAllProjects.csproj", "{16492196-280D-442A-902C-11CF85118BF3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Itens de Solução", "Itens de Solução", "{C9C68C3D-935B-445A-A309-8D44E33F99E9}"
 	ProjectSection(SolutionItems) = preProject

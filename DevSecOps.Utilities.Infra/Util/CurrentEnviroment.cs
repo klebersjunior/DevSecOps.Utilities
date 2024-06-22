@@ -44,6 +44,11 @@ namespace DevSecOps.Utilities.Infra.Util
         {
             return Environment.GetEnvironmentVariable("GitPass");
         }
+
+        public static string AzDevOpsStartGitUrl()
+        {
+            return Environment.GetEnvironmentVariable("AzDevOpsStartGitUrl");
+        }
     }
 }
 
