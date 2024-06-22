@@ -34,7 +34,7 @@ namespace DevSecOps.Utilities.SyncAzDevOpsDefectDojo
 
                     var projects = azDevOpsService.GetAzDevOpsProjects();
 
-                    foreach (var project in projects.value.Where(x=>x.id == "c6918657-337a-4c0d-b074-f9a559a94b5f"))
+                    foreach (var project in projects.value)
                     {
                         var repositories = azDevOpsService.GetAzDevOpsRepos(project.name);
                         foreach (var repository in repositories.value)
@@ -96,12 +96,16 @@ namespace DevSecOps.Utilities.SyncAzDevOpsDefectDojo
                                             foundBy.Add(1);
                                             finding.FoundBy =foundBy ;
                                             finding.Active = true;
-                                            
+
                                             StringBuilder description = new StringBuilder();
                                             StringBuilder mitigation = new StringBuilder();
 
                                             long cwe = 0;
 
+
+                                            description.AppendLine($"Branch: {alert.gitRef}");
+                                            description.AppendLine($"GitUrl: {alert.repositoryUrl}");
+                                            
                                             if (alert.tools != null)
                                                 foreach (var tool in alert.tools)
                                                 {
@@ -110,7 +114,7 @@ namespace DevSecOps.Utilities.SyncAzDevOpsDefectDojo
                                                         {
                                                             description.AppendLine(rule.description);
                                                             description.AppendLine(rule.resources);
-                                                            description.AppendLine(rule.helpMessage);
+                                                            
                                                             mitigation.AppendLine(rule.helpMessage);
 
                                                             if (rule.tags != null)
@@ -128,6 +132,14 @@ namespace DevSecOps.Utilities.SyncAzDevOpsDefectDojo
                                             if (cwe > 0)
                                                 finding.Cwe = cwe;
 
+                                            if (alert.logicalLocations != null)
+                                            {
+                                                description.AppendLine($"Locations:");
+                                                foreach (var item in alert.logicalLocations)
+                                                {
+                                                    description.AppendLine($"Local: {item.fullyQualifiedName}");
+                                                }
+                                            }
                                             finding.Description = description.ToString();
                                             finding.Mitigation = mitigation.ToString();
 
@@ -139,11 +151,13 @@ namespace DevSecOps.Utilities.SyncAzDevOpsDefectDojo
                                                     {
                                                         finding.Line = physicalLocation.region.lineStart;
                                                         finding.ComponentName = repository.name;
+                                                        
                                                     }
                                                 }
+
                                             finding.PublishDate = DateTime.Now.ToString("yyyy-MM-dd");
                                             finding.Test = test.Id;
-                                            finding.Verified = false;
+                                            finding.Verified = true;
                                             
                                             defectDojoService.CreateFinding(finding);
                                         }
@@ -153,14 +167,15 @@ namespace DevSecOps.Utilities.SyncAzDevOpsDefectDojo
 
                                 //Closed Fixed Findings
                                 var closedFindings = azDevOpsService.GetClosedAlertsProject(project.name, repository.name);
-                                foreach (var alert in closedFindings.value)
-                                {
-                                    var findingResult = defectDojoService.SearchFindingByExternalId(alert.alertId.ToString());
-                                    if (findingResult.Results.Count == 0)
+                                if (closedFindings.count > 0)
+                                    foreach (var alert in closedFindings.value)
                                     {
-                                        defectDojoService.CloseFinding(findingResult.Results.FirstOrDefault().Id.ToString());
+                                        var findingResult = defectDojoService.SearchFindingByExternalId(alert.alertId.ToString());
+                                        if (findingResult.Results.Count > 0)
+                                        {
+                                            defectDojoService.CloseFinding(findingResult.Results.FirstOrDefault().Id.ToString());
+                                        }
                                     }
-                                }
                             }
                             catch (Exception ex) 
                             {
@@ -174,7 +189,7 @@ namespace DevSecOps.Utilities.SyncAzDevOpsDefectDojo
 
                     _logger.LogInformation("Worker stopping running at: {time}", DateTimeOffset.Now);
                 }
-                await Task.Delay(1000 * 60 * 5, stoppingToken);
+                await Task.Delay(1000 * 60 * 30, stoppingToken);
             }
         }
     }
