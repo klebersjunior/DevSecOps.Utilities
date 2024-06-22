@@ -1,11 +1,11 @@
 #See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
 
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
 EXPOSE 80
 EXPOSE 443
 
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY ["DevSecOps.Utilities.WebApi/DevSecOps.Utilities.WebApi.csproj", "DevSecOps.Utilities.WebApi/"]
 RUN dotnet restore "DevSecOps.Utilities.WebApi/DevSecOps.Utilities.WebApi.csproj"
@@ -19,4 +19,6 @@ RUN dotnet publish "DevSecOps.Utilities.WebApi.csproj" -c Release -o /app/publis
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+
+RUN curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b /usr/local/bin
 ENTRYPOINT ["dotnet", "DevSecOps.Utilities.WebApi.dll"]
