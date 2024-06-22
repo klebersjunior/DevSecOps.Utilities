@@ -23,19 +23,25 @@ namespace DevSecOps.Utilities.Infra.Services.GitHub
         {
             List<GitHubSearchResponse> results = new List<GitHubSearchResponse>();
 
-            Dictionary<string,string> parameters = new Dictionary<string,string>();
+            
+            
             Dictionary<string,string> headers = new Dictionary<string,string>();
-            headers.Add("Authorization", $"Bearer {UtilEnviroment.GitPass}");
+            headers.Add("Authorization", $"Bearer {UtilEnviroment.GitPass()}");
+            headers.Add("User-Agent", $"Console .NET");
 
             int page = 1;
             bool continueExec = true;
             while (continueExec)
             {
-                var response = httpService.GetApiAsync($"https://api.github.com/orgs/{orgName}/repos?page={page}", parameters, headers).Result;
+
+                Dictionary<string,string> parameters = new Dictionary<string,string>();
+                parameters.Add("page", page.ToString());
+                var response = httpService.GetApiAsync($"https://api.github.com/orgs/{orgName}/repos", parameters, headers).Result;
 
                 if(string.IsNullOrEmpty(response))
                 {
-                    continueExec = false;;
+                    continueExec = false;
+                    continue;
                 }
 
                 var data = JsonConvert.DeserializeObject<List<GitHubSearchResponse>>(response);
@@ -43,9 +49,11 @@ namespace DevSecOps.Utilities.Infra.Services.GitHub
                 if(data.Count == 0)
                 {
                     continueExec = false;
+                    continue;
                 }
 
                 results.AddRange(data);
+                page = page+1;
             }
 
 

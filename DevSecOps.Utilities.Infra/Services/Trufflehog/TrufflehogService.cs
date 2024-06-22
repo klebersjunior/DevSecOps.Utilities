@@ -41,7 +41,7 @@ namespace DevSecOps.Utilities.Infra.Services.Trufflehog
             process.StartInfo.RedirectStandardError = true;
             process.StartInfo.CreateNoWindow = true;
 
-            int timeout = 1000 * 30;
+            int timeout = 1000 * 60 * 5;
 
             StringBuilder output = new StringBuilder();
             StringBuilder error = new StringBuilder();
@@ -103,10 +103,13 @@ namespace DevSecOps.Utilities.Infra.Services.Trufflehog
                             mitigation.AppendLine("=====================");
                             mitigation.AppendLine("Revogar o conteudo sensivel (senha ou segredo) e não reutiliza-lo.");
                             mitigation.AppendLine("=====================");
-                            mitigation.AppendLine(th.ExtraData.RotationGuide);
-                            mitigation.AppendLine("====================="); 
-                            finding.Mitigation = mitigation.ToString();
 
+                            if(th.ExtraData != null)
+                            {
+                                mitigation.AppendLine(th.ExtraData.RotationGuide);
+                                mitigation.AppendLine("====================="); 
+                                finding.Mitigation = mitigation.ToString();
+                            }
                             finding.FilePath = th.SourceMetadata.Data.Git.File;
                             finding.Line = th.SourceMetadata.Data.Git.Line;
                             finding.ComponentName = th.SourceMetadata.Data.Git.Repository;
