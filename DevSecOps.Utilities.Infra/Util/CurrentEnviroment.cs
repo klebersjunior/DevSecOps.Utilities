@@ -49,6 +49,11 @@ namespace DevSecOps.Utilities.Infra.Util
         {
             return Environment.GetEnvironmentVariable("AzDevOpsStartGitUrl");
         }
+
+        public static string SbomUrl()
+        {
+            return Environment.GetEnvironmentVariable("SbomUrl");
+        }
     }
 }
 

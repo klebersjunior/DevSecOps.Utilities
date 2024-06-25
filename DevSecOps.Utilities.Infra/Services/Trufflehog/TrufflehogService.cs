@@ -35,7 +35,7 @@ namespace DevSecOps.Utilities.Infra.Services.Trufflehog
             Process process = new Process();
             process.StartInfo.FileName = "trufflehog";
             string argument = $"git https://{this.GitUser}:{this.GitPass}@{this.GitUrl.Replace("https://", "")} --json";
-            Console.WriteLine(argument);
+            
             process.StartInfo.Arguments = argument;
 
             process.StartInfo.UseShellExecute = false;

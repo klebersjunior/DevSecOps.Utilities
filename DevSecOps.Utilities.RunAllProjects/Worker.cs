@@ -1,5 +1,8 @@
 using DevSecOps.Utilities.Infra.Model.DefectDojo;
+using DevSecOps.Utilities.Infra.Model.DependencyTrack;
+using DevSecOps.Utilities.Infra.Services.Cdxgen;
 using DevSecOps.Utilities.Infra.Services.DefectDojo;
+using DevSecOps.Utilities.Infra.Services.DependencyTrack;
 using DevSecOps.Utilities.Infra.Services.GitHub;
 using DevSecOps.Utilities.Infra.Services.Trufflehog;
 using DevSecOps.Utilities.Infra.Util;
@@ -67,6 +70,37 @@ public class Worker : BackgroundService
                     }
 
                     trufflehogService.ExecuteScan(test);
+
+                    DependencyTrackService dependencyTrackService = new DependencyTrackService(UtilEnviroment.DependencyTrackUrl(), UtilEnviroment.DependencyTrackToken());
+
+                    //Create Project
+                    var dTrackProjectResult = dependencyTrackService.SearchProject(project.Name);
+                    ProjectDTModel dTrackProject;
+                    if (dTrackProjectResult.Count == 0)
+                    {
+                        dTrackProject = dependencyTrackService.CreateProject(product.Name, engagement.Id.ToString());
+                    }
+                    else
+                    {
+                        dTrackProject = dTrackProjectResult.FirstOrDefault();
+
+                        if (dTrackProject.Properties == null || dTrackProject.Properties.Count == 0)
+                        {
+                            dependencyTrackService.AddDDProperties(dTrackProject, engagement.Id.ToString());
+                        }
+                    }
+
+                    CdxgenService cdxgenService = new CdxgenService(project.Name,project.CloneUrl);
+                    var result = cdxgenService.ExecuteScan(test);   
+
+                    var base64result = result.ToString().EncodeToBase64();
+
+                    ProjectUploadModel projectUpload = new ProjectUploadModel();
+                    projectUpload.bom = base64result;
+                    projectUpload.project = dTrackProject.Uuid;
+
+                    await dependencyTrackService.UploadBOM(projectUpload);
+
                 }
                 
 

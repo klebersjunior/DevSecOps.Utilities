@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using DevSecOps.Utilities.Infra.Model;
 using DevSecOps.Utilities.Infra.Model.DefectDojo;
 using DevSecOps.Utilities.Infra.Model.DependencyTrack;
+using DevSecOps.Utilities.Infra.Services.Cdxgen;
 using DevSecOps.Utilities.Infra.Services.DefectDojo;
 using DevSecOps.Utilities.Infra.Services.DependencyTrack;
 using DevSecOps.Utilities.Infra.Services.Trufflehog;
@@ -185,5 +186,77 @@ namespace DevSecOps.Utilities.WebApi.Controllers
             TrufflehogService trufflehogService = new TrufflehogService(gitUrl,UtilEnviroment.GitUser(),UtilEnviroment.GitPass());
             var result = trufflehogService.ExecuteScan(test);            
         }
+
+        [HttpPost("scandependecytrack")]
+        public async Task scandependecytrack([FromQuery] string projectName,[FromQuery] string gitUrl)
+        {
+            DefectDojoService defectDojoService = new DefectDojoService(UtilEnviroment.DefectDojoUrl(), UtilEnviroment.DefectDojoToken());
+            string importType ="dependencyTrack";
+            //Create DefectDojo Project
+            var projectInfo = defectDojoService.SearchProject(projectName);
+            ProductModel product;
+            if (projectInfo.Count == 0)
+            {
+                product = defectDojoService.CreateProject(projectName);
+            }
+            else
+            {
+                product = projectInfo.Results.FirstOrDefault();
+            }
+
+            //Create DD Engagement
+            var engagementInfo = defectDojoService.SearchEngagement(projectName, importType);
+            EngagementModel engagement;
+            if (engagementInfo.Count == 0)
+            {
+                engagement = defectDojoService.CreateEngagement(product.Name, importType, product);
+            }
+            else {
+                engagement = engagementInfo.Results.FirstOrDefault();
+            }
+
+            //Create DD Test
+            var testInfo = defectDojoService.SearchTest(projectName, engagement);
+            TestModel test;
+            if (testInfo.Count == 0)
+            {
+                test = defectDojoService.CreateTest(product.Name, importType, product, engagement);
+            }
+            else
+            {
+                test = testInfo.Results.FirstOrDefault();
+            }
+
+            DependencyTrackService dependencyTrackService = new DependencyTrackService(UtilEnviroment.DependencyTrackUrl(), UtilEnviroment.DependencyTrackToken());
+
+                //Create Project
+                var dTrackProjectResult = dependencyTrackService.SearchProject(projectName);
+                ProjectDTModel dTrackProject;
+                if (dTrackProjectResult.Count == 0)
+                {
+                    dTrackProject = dependencyTrackService.CreateProject(product.Name, engagement.Id.ToString());
+                }
+                else
+                {
+                    dTrackProject = dTrackProjectResult.FirstOrDefault();
+
+                    if (dTrackProject.Properties == null || dTrackProject.Properties.Count == 0)
+                    {
+                        dependencyTrackService.AddDDProperties(dTrackProject, engagement.Id.ToString());
+                    }
+                }
+
+            CdxgenService cdxgenService = new CdxgenService(projectName,gitUrl);
+            var result = cdxgenService.ExecuteScan(test);   
+
+            var base64result = result.ToString().EncodeToBase64();
+
+            ProjectUploadModel projectUpload = new ProjectUploadModel();
+            projectUpload.bom = base64result;
+            projectUpload.project = dTrackProject.Uuid;
+
+            await dependencyTrackService.UploadBOM(projectUpload);
+        }
+
     }
 }
