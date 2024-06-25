@@ -158,6 +158,7 @@ namespace DevSecOps.Utilities.Infra.Services.DependencyTrack
         public async Task UploadBOM(ProjectUploadModel projectUpload)
         {
             var client = new HttpClient();
+            client.Timeout = new TimeSpan(0, 20, 0);
             var request = new HttpRequestMessage(HttpMethod.Put, $"{urlBase}/api/v1/bom");
             request.Headers.Add("X-Api-Key", token);
             var content = new StringContent(JsonConvert.SerializeObject(projectUpload), null, "application/json");

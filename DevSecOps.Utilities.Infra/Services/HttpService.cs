@@ -239,6 +239,7 @@ namespace DevSecOps.Utilities.Infra.Service
             {
                 using (HttpClient client = new HttpClient())
                 {
+                    client.Timeout = new TimeSpan(0, 5, 0);
                     if (!string.IsNullOrEmpty(arg))
                         client.BaseAddress = new Uri($"{_urlapisf}?{arg}");
                     else

@@ -194,7 +194,7 @@ namespace DevSecOps.Utilities.SyncAzDevOpsDefectDojo
                                 //DependencyTrack Scan
 
                                 //Create Project
-                                var dTrackProjectResult = dependencyTrackService.SearchProject(project.name);
+                                var dTrackProjectResult = dependencyTrackService.SearchProject(repository.name);
                                 ProjectDTModel dTrackProject;
                                 if (dTrackProjectResult.Count == 0)
                                 {
@@ -224,6 +224,9 @@ namespace DevSecOps.Utilities.SyncAzDevOpsDefectDojo
                                     
                                     CdxgenService cdxgenService = new CdxgenService(info.name, info.remoteUrl);
                                     SbomResponse response = null;
+
+                                    
+                                    
                                     foreach (var item in languages)
                                     {
                                         var result = cdxgenService.ExecutePostScan(test, item);
@@ -235,7 +238,6 @@ namespace DevSecOps.Utilities.SyncAzDevOpsDefectDojo
                                             else
                                             {
                                                 response.Components.AddRange(cItem.Components);
-
                                                 response.Components = response.Components.Distinct().ToList();
 
                                                 response.Dependencies.AddRange(cItem.Dependencies);
@@ -243,15 +245,22 @@ namespace DevSecOps.Utilities.SyncAzDevOpsDefectDojo
                                             }
                                         }
                                     }
+                                    
 
+                                    if (response.Components.Count > 0)
+                                    {
+                                        var base64result = JsonConvert.SerializeObject(response).EncodeToBase64();
 
-                                    var base64result = JsonConvert.SerializeObject(response).EncodeToBase64();
+                                        ProjectUploadModel projectUpload = new ProjectUploadModel();
+                                        projectUpload.bom = base64result;
+                                        projectUpload.project = dTrackProject.Uuid;
 
-                                    ProjectUploadModel projectUpload = new ProjectUploadModel();
-                                    projectUpload.bom = base64result;
-                                    projectUpload.project = dTrackProject.Uuid;
-
-                                    await dependencyTrackService.UploadBOM(projectUpload);
+                                        await dependencyTrackService.UploadBOM(projectUpload);
+                                    }
+                                    else
+                                    {
+                                        
+                                    }
                                 }
                             }
                             catch (Exception ex)
