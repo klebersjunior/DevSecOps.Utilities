@@ -3,6 +3,7 @@ using System.Reflection.PortableExecutable;
 using DevSecOps.Utilities.Infra.Model.DependencyTrack;
 using Newtonsoft.Json;
 using DevSecOps.Utilities.Infra.Service;
+using DevSecOps.Utilities.Infra.Util;
 
 
 namespace DevSecOps.Utilities.Infra.Services.DependencyTrack
@@ -99,9 +100,9 @@ namespace DevSecOps.Utilities.Infra.Services.DependencyTrack
             {
                 Name = projectName,
                 Description = projectName,
-                Author = "Matrix Energia",
-                Publisher = "Matrix Energia",
-                Group = "Matrix Energia",
+                Author = UtilEnviroment.CompanyName(),
+                Publisher = UtilEnviroment.CompanyName(),
+                Group = UtilEnviroment.CompanyName(),
                 Classifier = "APPLICATION",
                 Uuid = uuid,
                 Active = true,

@@ -54,6 +54,11 @@ namespace DevSecOps.Utilities.Infra.Util
         {
             return Environment.GetEnvironmentVariable("SbomUrl");
         }
+        public static string CompanyName()
+        {
+            return Environment.GetEnvironmentVariable("CompanyName");
+        }
+        
     }
 }
 

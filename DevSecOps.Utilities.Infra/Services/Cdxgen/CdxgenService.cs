@@ -11,6 +11,7 @@ using System.Text;
 using DevSecOps.Utilities.Infra.Services.DefectDojo;
 using DevSecOps.Utilities.Infra.Util;
 using DevSecOps.Utilities.Infra.Services.DependencyTrack;
+using DevSecOps.Utilities.Infra.Model.Cdxgen;
 
 
 
@@ -36,7 +37,28 @@ namespace DevSecOps.Utilities.Infra.Services.Cdxgen
             Dictionary<string,string> parameters = new Dictionary<string,string>();
             parameters.Add("url", $"https://{UtilEnviroment.GitUser()}:{UtilEnviroment.GitPass()}@{this.GitUrl.Replace("https://", "")}");
             parameters.Add("multiProject", $"true");
-            var result = httpService.GetApiAsync($"{UtilEnviroment.SbomUrl()}/sbom?",parameters).Result;
+            var result = httpService.GetApiAsync($"{UtilEnviroment.SbomUrl()}/sbom",parameters).Result;
+
+            return result;
+        }
+
+        public string ExecutePostScan(TestModel test, string type)
+        {
+            HttpService httpService = new HttpService();
+
+
+            SbomRequest sbomRequest = new SbomRequest();
+            sbomRequest.multiProject = "true";
+            sbomRequest.type = type;
+
+            string azOrgName = System.Environment.GetEnvironmentVariable("AzDevOpsOrgName");
+            if(string.IsNullOrEmpty(azOrgName))
+                sbomRequest.url = $"https://{UtilEnviroment.GitUser()}:{UtilEnviroment.GitPass()}@{this.GitUrl.Replace("https://", "")}";
+            else
+                sbomRequest.url = $"https://{UtilEnviroment.GitPass()}@{this.GitUrl.Replace("https://", "").Replace(azOrgName, "")}";
+
+            
+            var result = httpService.PostApiAsync($"{UtilEnviroment.SbomUrl()}/sbom", JsonConvert.SerializeObject(sbomRequest)).Result;
 
             return result;
         }

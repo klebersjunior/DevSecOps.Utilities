@@ -20,4 +20,10 @@ RUN dotnet publish "./DevSecOps.Utilities.SyncAzDevOpsDefectDojo.csproj" -c $BUI
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+RUN mkdir repos
+RUN apt -y update && apt upgrade
+RUN apt -y install curl
+RUN apt-get -y install git
+RUN curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b /usr/local/bin
+RUN chown -R app:app /usr/local/bin
 ENTRYPOINT ["dotnet", "DevSecOps.Utilities.SyncAzDevOpsDefectDojo.dll"]

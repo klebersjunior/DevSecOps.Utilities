@@ -80,5 +80,21 @@ namespace DevSecOps.Utilities.Infra.Services.AzDevOps
 
             return products;
         }
+
+        public AzDevOpsRepoInfo GetAzDevOpsRepoInfo(string url)
+        {
+            var parameters = new Dictionary<string, string>();
+
+            var headers = new Dictionary<string, string>();
+            headers.Add("Authorization", $"Basic {Conversor.EncodeToBase64($"Basic:{token}")}");
+
+            var response = httpService.GetApiAsync(url, parameters, headers).Result;
+
+
+
+            AzDevOpsRepoInfo products = JsonConvert.DeserializeObject<AzDevOpsRepoInfo>(response);
+
+            return products;
+        }
     }
 }
