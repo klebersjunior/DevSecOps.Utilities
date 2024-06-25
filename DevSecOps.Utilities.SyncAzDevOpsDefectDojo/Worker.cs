@@ -29,7 +29,7 @@ namespace DevSecOps.Utilities.SyncAzDevOpsDefectDojo
                 if (_logger.IsEnabled(LogLevel.Information))
                 {
                     _logger.LogInformation("Worker starting running at: {time}", DateTimeOffset.Now);
-
+                    
                     AzDevOpsService azDevOpsService = new AzDevOpsService(UtilEnviroment.AzDevOpsUrl(), UtilEnviroment.AzDevOpsToken());
                     DefectDojoService defectDojoService = new DefectDojoService(UtilEnviroment.DefectDojoUrl(), UtilEnviroment.DefectDojoToken());
 
@@ -42,6 +42,7 @@ namespace DevSecOps.Utilities.SyncAzDevOpsDefectDojo
                         var repositories = azDevOpsService.GetAzDevOpsRepos(project.name);
                         foreach (var repository in repositories.value)
                         {
+                            _logger.LogInformation($"Project: {project.name} - Repo: {repository.name}");
                             try
                             {
                                 var projectInfo = defectDojoService.SearchProject(repository.name);
@@ -82,6 +83,7 @@ namespace DevSecOps.Utilities.SyncAzDevOpsDefectDojo
 
                                 try
                                 {
+                                    _logger.LogInformation("Start Sync Advanced Security Issues");
                                     var alerts = azDevOpsService.GetAlertsProject(project.name, repository.name);
                                     if (alerts.count > 0)
                                         foreach (var alert in alerts.value)
@@ -168,8 +170,9 @@ namespace DevSecOps.Utilities.SyncAzDevOpsDefectDojo
                                             }
 
                                         }
+                                    _logger.LogInformation("Finish Advanced Security Issues");
 
-
+                                    _logger.LogInformation("Start Closed Fixed Findings");
                                     //Closed Fixed Findings
                                     var closedFindings = azDevOpsService.GetClosedAlertsProject(project.name, repository.name);
                                     if (closedFindings.count > 0)
@@ -181,6 +184,7 @@ namespace DevSecOps.Utilities.SyncAzDevOpsDefectDojo
                                                 defectDojoService.CloseFinding(findingResult.Results.FirstOrDefault().Id.ToString());
                                             }
                                         }
+                                    _logger.LogInformation("Finish Closed Fixed Findings");
                                 }
                                 catch (Exception ex)
                                 {
@@ -192,7 +196,7 @@ namespace DevSecOps.Utilities.SyncAzDevOpsDefectDojo
 
 
                                 //DependencyTrack Scan
-
+                                _logger.LogInformation("Start Dependency Track Scan");
                                 //Create Project
                                 var dTrackProjectResult = dependencyTrackService.SearchProject(repository.name);
                                 ProjectDTModel dTrackProject;
@@ -229,26 +233,37 @@ namespace DevSecOps.Utilities.SyncAzDevOpsDefectDojo
                                     
                                     foreach (var item in languages)
                                     {
-                                        var result = cdxgenService.ExecutePostScan(test, item);
-                                        var cItem = JsonConvert.DeserializeObject<SbomResponse>(result);
-                                        if (cItem != null)
+                                        try
                                         {
-                                            if (response == null)
-                                                response = cItem;
-                                            else
+                                            _logger.LogInformation($"Start Language: {item}");
+                                            var result = cdxgenService.ExecutePostScan(test, item);
+                                            var cItem = JsonConvert.DeserializeObject<SbomResponse>(result);
+                                            if (cItem != null)
                                             {
-                                                response.Components.AddRange(cItem.Components);
-                                                response.Components = response.Components.Distinct().ToList();
+                                                if (response == null)
+                                                    response = cItem;
+                                                else
+                                                {
+                                                    response.Components.AddRange(cItem.Components);
+                                                    response.Components = response.Components.Distinct().ToList();
 
-                                                response.Dependencies.AddRange(cItem.Dependencies);
-                                                response.Dependencies = response.Dependencies.Distinct().ToList();
+                                                    response.Dependencies.AddRange(cItem.Dependencies);
+                                                    response.Dependencies = response.Dependencies.Distinct().ToList();
+                                                }
                                             }
+                                            _logger.LogInformation($"Finish language {item}");
                                         }
+                                        catch (Exception ex) 
+                                        {
+                                            _logger.LogError(ex, ex.Message);
+                                        }
+
                                     }
-                                    
+
 
                                     if (response.Components.Count > 0)
                                     {
+                                        _logger.LogInformation("Start BOM Upload");
                                         var base64result = JsonConvert.SerializeObject(response).EncodeToBase64();
 
                                         ProjectUploadModel projectUpload = new ProjectUploadModel();
@@ -256,15 +271,18 @@ namespace DevSecOps.Utilities.SyncAzDevOpsDefectDojo
                                         projectUpload.project = dTrackProject.Uuid;
 
                                         await dependencyTrackService.UploadBOM(projectUpload);
+
+                                        _logger.LogInformation("Finish BOM Upload");
                                     }
                                     else
                                     {
-                                        
+                                        _logger.LogInformation("Not Components in BOM");
                                     }
                                 }
                             }
                             catch (Exception ex)
                             {
+                                _logger.LogError(ex, ex.Message);
                                 Console.WriteLine(ex.Message);
                             }
                         }
