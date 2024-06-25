@@ -220,24 +220,27 @@ namespace DevSecOps.Utilities.SyncAzDevOpsDefectDojo
                                     languages.Add("python");
                                     languages.Add("netcore");
                                     languages.Add("dockerfile");
-
-
+                                    languages.Add("helm");
+                                    
                                     CdxgenService cdxgenService = new CdxgenService(info.name, info.remoteUrl);
                                     SbomResponse response = null;
                                     foreach (var item in languages)
                                     {
                                         var result = cdxgenService.ExecutePostScan(test, item);
                                         var cItem = JsonConvert.DeserializeObject<SbomResponse>(result);
-                                        if (response == null)
-                                            response = cItem;
-                                        else
+                                        if (cItem != null)
                                         {
-                                            response.Components.AddRange(cItem.Components);
+                                            if (response == null)
+                                                response = cItem;
+                                            else
+                                            {
+                                                response.Components.AddRange(cItem.Components);
 
-                                            response.Components = response.Components.Distinct().ToList();
+                                                response.Components = response.Components.Distinct().ToList();
 
-                                            response.Dependencies.AddRange(cItem.Dependencies);
-                                            response.Dependencies = response.Dependencies.Distinct().ToList();
+                                                response.Dependencies.AddRange(cItem.Dependencies);
+                                                response.Dependencies = response.Dependencies.Distinct().ToList();
+                                            }
                                         }
                                     }
 
