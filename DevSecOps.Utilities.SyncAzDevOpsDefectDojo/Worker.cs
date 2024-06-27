@@ -91,6 +91,7 @@ namespace DevSecOps.Utilities.SyncAzDevOpsDefectDojo
                                             //Verifica se a Finding já existe no DefectDojo
                                             var findingResult = defectDojoService.SearchFindingByExternalId(alert.alertId.ToString());
 
+                                            if(findingResult.Results != null)
                                             if (findingResult.Results.Count == 0)
                                             {
                                                 //Add Finding to DefectDojo se não existir
@@ -179,6 +180,7 @@ namespace DevSecOps.Utilities.SyncAzDevOpsDefectDojo
                                         foreach (var alert in closedFindings.value)
                                         {
                                             var findingResult = defectDojoService.SearchFindingByExternalId(alert.alertId.ToString());
+                                            if(findingResult.Results != null)
                                             if (findingResult.Results.Count > 0)
                                             {
                                                 defectDojoService.CloseFinding(findingResult.Results.FirstOrDefault().Id.ToString());
@@ -223,8 +225,8 @@ namespace DevSecOps.Utilities.SyncAzDevOpsDefectDojo
                                     languages.Add("nodejs");
                                     languages.Add("python");
                                     languages.Add("netcore");
-                                    languages.Add("dockerfile");
-                                    languages.Add("helm");
+                                    //languages.Add("dockerfile");
+                                    //languages.Add("helm");
                                     
                                     CdxgenService cdxgenService = new CdxgenService(info.name, info.remoteUrl);
                                     SbomResponse response = null;
@@ -236,7 +238,7 @@ namespace DevSecOps.Utilities.SyncAzDevOpsDefectDojo
                                         try
                                         {
                                             _logger.LogInformation($"Start Language: {item}");
-                                            var result = cdxgenService.ExecutePostScan(test, item);
+                                            var result = cdxgenService.ExecutePostScan(test, item, dTrackProject.Uuid);
                                             var cItem = JsonConvert.DeserializeObject<SbomResponse>(result);
                                             if (cItem != null)
                                             {
@@ -260,7 +262,7 @@ namespace DevSecOps.Utilities.SyncAzDevOpsDefectDojo
 
                                     }
 
-
+                                    if(response != null)
                                     if (response.Components.Count > 0)
                                     {
                                         _logger.LogInformation("Start BOM Upload");

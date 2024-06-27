@@ -42,7 +42,7 @@ namespace DevSecOps.Utilities.Infra.Services.Cdxgen
             return result;
         }
 
-        public string ExecutePostScan(TestModel test, string type)
+        public string ExecutePostScan(TestModel test, string type, string productId)
         {
             HttpService httpService = new HttpService();
 
@@ -50,6 +50,9 @@ namespace DevSecOps.Utilities.Infra.Services.Cdxgen
             SbomRequest sbomRequest = new SbomRequest();
             sbomRequest.multiProject = "true";
             sbomRequest.type = type;
+            sbomRequest.serverUrl = UtilEnviroment.DependencyTrackUrl(); ;
+            sbomRequest.apiKey = UtilEnviroment.DependencyTrackToken();
+            sbomRequest.projectId = productId;
 
             string azOrgName = System.Environment.GetEnvironmentVariable("AzDevOpsOrgName");
             if(string.IsNullOrEmpty(azOrgName))

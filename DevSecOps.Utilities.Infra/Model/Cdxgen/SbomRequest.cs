@@ -11,5 +11,9 @@ namespace DevSecOps.Utilities.Infra.Model.Cdxgen
         public string url { get; set; }
         public string type { get; set; }
         public string multiProject { get; set; }
+
+        public string serverUrl { get; set; }
+        public string apiKey { get; set; }
+        public string projectId { get; set; }
     }
 }
