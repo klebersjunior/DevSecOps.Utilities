@@ -24,6 +24,25 @@ namespace DevSecOps.Utilities.SyncAzDevOpsDefectDojo
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            var executeModulesVariable = System.Environment.GetEnvironmentVariable("Execution");
+            bool executeAzDevOps = true;
+            bool executeCdxGen = true;
+
+            if (!string.IsNullOrEmpty(executeModulesVariable))
+            {
+                var executeModules = executeModulesVariable.Split(',');
+
+                if (executeModules.Any(x => x == "azdevops"))
+                    executeAzDevOps = true;
+                else
+                    executeAzDevOps = false;
+
+                if (executeModules.Any(x => x == "cdxgen"))
+                    executeCdxGen = true;
+                else
+                    executeCdxGen = false;
+            }
+
             while (!stoppingToken.IsCancellationRequested)
             {
                 if (_logger.IsEnabled(LogLevel.Information))
@@ -81,204 +100,202 @@ namespace DevSecOps.Utilities.SyncAzDevOpsDefectDojo
                                     test = testInfo.Results.FirstOrDefault();
                                 }
 
-                                try
+                                if (executeAzDevOps)
                                 {
-                                    _logger.LogInformation("Start Sync Advanced Security Issues");
-                                    var alerts = azDevOpsService.GetAlertsProject(project.name, repository.name);
-                                    if (alerts.count > 0)
-                                        foreach (var alert in alerts.value)
-                                        {
-                                            //Verifica se a Finding já existe no DefectDojo
-                                            var findingResult = defectDojoService.SearchFindingByExternalId(alert.alertId.ToString());
-
-                                            if(findingResult.Results != null)
-                                            if (findingResult.Results.Count == 0)
+                                    try
+                                    {
+                                        _logger.LogInformation("Start Sync Advanced Security Issues");
+                                        var alerts = azDevOpsService.GetAlertsProject(project.name, repository.name);
+                                        if (alerts.count > 0)
+                                            foreach (var alert in alerts.value)
                                             {
-                                                //Add Finding to DefectDojo se não existir
-                                                DDCreateFindingRequestModel finding = new DDCreateFindingRequestModel();
-                                                finding.Title = alert.title;
-                                                finding.UniqueIdFromTool = alert.alertId.ToString();
-                                                finding.VulnIdFromTool = alert.alertId.ToString();
-                                                finding.Severity = alert.severity.FirstCharToUpper();
-                                                List<int?> foundBy = new List<int?>();
-                                                foundBy.Add(1);
-                                                finding.FoundBy = foundBy;
-                                                finding.Active = true;
+                                                //Verifica se a Finding já existe no DefectDojo
+                                                var findingResult = defectDojoService.SearchFindingByExternalId(alert.alertId.ToString());
 
-                                                StringBuilder description = new StringBuilder();
-                                                StringBuilder mitigation = new StringBuilder();
-
-                                                long cwe = 0;
-
-
-                                                description.AppendLine($"Branch: {alert.gitRef}");
-                                                description.AppendLine($"GitUrl: {alert.repositoryUrl}");
-
-                                                if (alert.tools != null)
-                                                    foreach (var tool in alert.tools)
+                                                if (findingResult.Results != null)
+                                                    if (findingResult.Results.Count == 0)
                                                     {
-                                                        if (tool.rules != null)
-                                                            foreach (var rule in tool.rules)
+                                                        //Add Finding to DefectDojo se não existir
+                                                        DDCreateFindingRequestModel finding = new DDCreateFindingRequestModel();
+                                                        finding.Title = alert.title;
+                                                        finding.UniqueIdFromTool = alert.alertId.ToString();
+                                                        finding.VulnIdFromTool = alert.alertId.ToString();
+                                                        finding.Severity = alert.severity.FirstCharToUpper();
+                                                        List<int?> foundBy = new List<int?>();
+                                                        foundBy.Add(1);
+                                                        finding.FoundBy = foundBy;
+                                                        finding.Active = true;
+
+                                                        StringBuilder description = new StringBuilder();
+                                                        StringBuilder mitigation = new StringBuilder();
+
+                                                        long cwe = 0;
+
+
+                                                        description.AppendLine($"Branch: {alert.gitRef}");
+                                                        description.AppendLine($"GitUrl: {alert.repositoryUrl}");
+
+                                                        if (alert.tools != null)
+                                                            foreach (var tool in alert.tools)
                                                             {
-                                                                description.AppendLine(rule.description);
-                                                                description.AppendLine(rule.resources);
-
-                                                                mitigation.AppendLine(rule.helpMessage);
-
-                                                                if (rule.tags != null)
-                                                                    foreach (var tag in rule.tags)
+                                                                if (tool.rules != null)
+                                                                    foreach (var rule in tool.rules)
                                                                     {
-                                                                        if (cwe == 0)
-                                                                            if (tag.Contains("external/cwe/cwe-"))
+                                                                        description.AppendLine(rule.description);
+                                                                        description.AppendLine(rule.resources);
+
+                                                                        mitigation.AppendLine(rule.helpMessage);
+
+                                                                        if (rule.tags != null)
+                                                                            foreach (var tag in rule.tags)
                                                                             {
-                                                                                cwe = long.Parse(tag.Replace("external/cwe/cwe-", ""));
+                                                                                if (cwe == 0)
+                                                                                    if (tag.Contains("external/cwe/cwe-"))
+                                                                                    {
+                                                                                        cwe = long.Parse(tag.Replace("external/cwe/cwe-", ""));
+                                                                                    }
                                                                             }
+
                                                                     }
-
                                                             }
-                                                    }
-                                                if (cwe > 0)
-                                                    finding.Cwe = cwe;
+                                                        if (cwe > 0)
+                                                            finding.Cwe = cwe;
 
-                                                if (alert.logicalLocations != null)
-                                                {
-                                                    description.AppendLine($"Locations:");
-                                                    foreach (var item in alert.logicalLocations)
-                                                    {
-                                                        description.AppendLine($"Local: {item.fullyQualifiedName}");
-                                                    }
-                                                }
-                                                finding.Description = description.ToString();
-                                                finding.Mitigation = mitigation.ToString();
-
-                                                if (alert.physicalLocations != null)
-                                                    foreach (var physicalLocation in alert.physicalLocations)
-                                                    {
-                                                        finding.FilePath = physicalLocation.filePath;
-                                                        if (physicalLocation.region != null)
+                                                        if (alert.logicalLocations != null)
                                                         {
-                                                            finding.Line = physicalLocation.region.lineStart;
-                                                            finding.ComponentName = repository.name;
-
+                                                            description.AppendLine($"Locations:");
+                                                            foreach (var item in alert.logicalLocations)
+                                                            {
+                                                                description.AppendLine($"Local: {item.fullyQualifiedName}");
+                                                            }
                                                         }
+                                                        finding.Description = description.ToString();
+                                                        finding.Mitigation = mitigation.ToString();
+
+                                                        if (alert.physicalLocations != null)
+                                                            foreach (var physicalLocation in alert.physicalLocations)
+                                                            {
+                                                                finding.FilePath = physicalLocation.filePath;
+                                                                if (physicalLocation.region != null)
+                                                                {
+                                                                    finding.Line = physicalLocation.region.lineStart;
+                                                                    finding.ComponentName = repository.name;
+
+                                                                }
+                                                            }
+
+                                                        finding.PublishDate = DateTime.Now.ToString("yyyy-MM-dd");
+                                                        finding.Test = test.Id;
+                                                        finding.Verified = true;
+
+                                                        defectDojoService.CreateFinding(finding);
                                                     }
 
-                                                finding.PublishDate = DateTime.Now.ToString("yyyy-MM-dd");
-                                                finding.Test = test.Id;
-                                                finding.Verified = true;
-
-                                                defectDojoService.CreateFinding(finding);
                                             }
+                                        _logger.LogInformation("Finish Advanced Security Issues");
 
-                                        }
-                                    _logger.LogInformation("Finish Advanced Security Issues");
-
-                                    _logger.LogInformation("Start Closed Fixed Findings");
-                                    //Closed Fixed Findings
-                                    var closedFindings = azDevOpsService.GetClosedAlertsProject(project.name, repository.name);
-                                    if (closedFindings.count > 0)
-                                        foreach (var alert in closedFindings.value)
-                                        {
-                                            var findingResult = defectDojoService.SearchFindingByExternalId(alert.alertId.ToString());
-                                            if(findingResult.Results != null)
-                                            if (findingResult.Results.Count > 0)
+                                        _logger.LogInformation("Start Closed Fixed Findings");
+                                        //Closed Fixed Findings
+                                        var closedFindings = azDevOpsService.GetClosedAlertsProject(project.name, repository.name);
+                                        if (closedFindings.count > 0)
+                                            foreach (var alert in closedFindings.value)
                                             {
-                                                defectDojoService.CloseFinding(findingResult.Results.FirstOrDefault().Id.ToString());
+                                                var findingResult = defectDojoService.SearchFindingByExternalId(alert.alertId.ToString());
+                                                if (findingResult.Results != null)
+                                                    if (findingResult.Results.Count > 0)
+                                                    {
+                                                        defectDojoService.CloseFinding(findingResult.Results.FirstOrDefault().Id.ToString());
+                                                    }
                                             }
-                                        }
-                                    _logger.LogInformation("Finish Closed Fixed Findings");
-                                }
-                                catch (Exception ex)
-                                {
-                                    if (ex.Message.Contains("VS2150009: Advanced Security is not enabled for this repository"))
-                                        continue;
-                                    else
-                                        Console.WriteLine(ex.Message);
-                                }
-
-
-                                //DependencyTrack Scan
-                                _logger.LogInformation("Start Dependency Track Scan");
-                                //Create Project
-                                var dTrackProjectResult = dependencyTrackService.SearchProject(repository.name);
-                                ProjectDTModel dTrackProject;
-                                if (dTrackProjectResult.Count == 0)
-                                {
-                                    dTrackProject = dependencyTrackService.CreateProject(product.Name, engagement.Id.ToString());
-                                }
-                                else
-                                {
-                                    dTrackProject = dTrackProjectResult.FirstOrDefault();
-
-                                    if (dTrackProject.Properties == null || dTrackProject.Properties.Count == 0)
+                                        _logger.LogInformation("Finish Closed Fixed Findings");
+                                    }
+                                    catch (Exception ex)
                                     {
-                                        dependencyTrackService.AddDDProperties(dTrackProject, engagement.Id.ToString());
+                                        if (ex.Message.Contains("VS2150009: Advanced Security is not enabled for this repository"))
+                                            continue;
+                                        else
+                                            Console.WriteLine(ex.Message);
                                     }
                                 }
 
-                                
-                                var info = azDevOpsService.GetAzDevOpsRepoInfo(repository.url);
-
-                                if (!string.IsNullOrEmpty(info.remoteUrl))
+                                if (executeCdxGen)
                                 {
-                                    List<string> languages = new List<string>();
-                                    languages.Add("nodejs");
-                                    languages.Add("python");
-                                    languages.Add("netcore");
-                                    //languages.Add("dockerfile");
-                                    //languages.Add("helm");
-                                    
-                                    CdxgenService cdxgenService = new CdxgenService(info.name, info.remoteUrl);
-                                    SbomResponse response = null;
-
-                                    
-                                    
-                                    foreach (var item in languages)
+                                    //DependencyTrack Scan
+                                    _logger.LogInformation("Start Dependency Track Scan");
+                                    //Create Project
+                                    var dTrackProjectResult = dependencyTrackService.SearchProject(repository.name);
+                                    ProjectDTModel dTrackProject;
+                                    if (dTrackProjectResult.Count == 0)
                                     {
-                                        try
+                                        dTrackProject = dependencyTrackService.CreateProject(product.Name, engagement.Id.ToString());
+                                    }
+                                    else
+                                    {
+                                        dTrackProject = dTrackProjectResult.FirstOrDefault();
+                                        if (dTrackProject.Properties == null || dTrackProject.Properties.Count == 0)
                                         {
-                                            _logger.LogInformation($"Start Language: {item}");
-                                            var result = cdxgenService.ExecutePostScan(test, item, dTrackProject.Uuid);
-                                            var cItem = JsonConvert.DeserializeObject<SbomResponse>(result);
-                                            if (cItem != null)
+                                            dependencyTrackService.AddDDProperties(dTrackProject, engagement.Id.ToString());
+                                        }
+                                    }
+
+                                    var info = azDevOpsService.GetAzDevOpsRepoInfo(repository.url);
+                                    if (!string.IsNullOrEmpty(info.remoteUrl))
+                                    {
+                                        List<string> languages = new List<string>();
+                                        languages.Add("nodejs");
+                                        languages.Add("python");
+                                        languages.Add("netcore");
+
+                                        CdxgenService cdxgenService = new CdxgenService(info.name, info.remoteUrl);
+                                        SbomResponse response = null;
+
+                                        foreach (var item in languages)
+                                        {
+                                            try
                                             {
-                                                if (response == null)
-                                                    response = cItem;
-                                                else
+                                                _logger.LogInformation($"Start Language: {item}");
+                                                var result = cdxgenService.ExecutePostScan(test, item, dTrackProject.Uuid);
+                                                var cItem = JsonConvert.DeserializeObject<SbomResponse>(result);
+                                                if (cItem != null)
                                                 {
-                                                    response.Components.AddRange(cItem.Components);
-                                                    response.Components = response.Components.Distinct().ToList();
+                                                    if (response == null)
+                                                        response = cItem;
+                                                    else
+                                                    {
+                                                        response.Components.AddRange(cItem.Components);
+                                                        response.Components = response.Components.Distinct().ToList();
 
-                                                    response.Dependencies.AddRange(cItem.Dependencies);
-                                                    response.Dependencies = response.Dependencies.Distinct().ToList();
+                                                        response.Dependencies.AddRange(cItem.Dependencies);
+                                                        response.Dependencies = response.Dependencies.Distinct().ToList();
+                                                    }
                                                 }
+                                                _logger.LogInformation($"Finish language {item}");
                                             }
-                                            _logger.LogInformation($"Finish language {item}");
+                                            catch (Exception ex)
+                                            {
+                                                _logger.LogError(ex, ex.Message);
+                                            }
+
                                         }
-                                        catch (Exception ex) 
-                                        {
-                                            _logger.LogError(ex, ex.Message);
-                                        }
 
-                                    }
+                                        if (response != null)
+                                            if (response.Components.Count > 0)
+                                            {
+                                                _logger.LogInformation("Start BOM Upload");
+                                                var base64result = JsonConvert.SerializeObject(response).EncodeToBase64();
 
-                                    if(response != null)
-                                    if (response.Components.Count > 0)
-                                    {
-                                        _logger.LogInformation("Start BOM Upload");
-                                        var base64result = JsonConvert.SerializeObject(response).EncodeToBase64();
+                                                ProjectUploadModel projectUpload = new ProjectUploadModel();
+                                                projectUpload.bom = base64result;
+                                                projectUpload.project = dTrackProject.Uuid;
 
-                                        ProjectUploadModel projectUpload = new ProjectUploadModel();
-                                        projectUpload.bom = base64result;
-                                        projectUpload.project = dTrackProject.Uuid;
+                                                await dependencyTrackService.UploadBOM(projectUpload);
 
-                                        await dependencyTrackService.UploadBOM(projectUpload);
-
-                                        _logger.LogInformation("Finish BOM Upload");
-                                    }
-                                    else
-                                    {
-                                        _logger.LogInformation("Not Components in BOM");
+                                                _logger.LogInformation("Finish BOM Upload");
+                                            }
+                                            else
+                                            {
+                                                _logger.LogInformation("Not Components in BOM");
+                                            }
                                     }
                                 }
                             }
