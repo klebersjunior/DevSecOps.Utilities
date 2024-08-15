@@ -58,7 +58,36 @@ namespace DevSecOps.Utilities.Infra.Util
         {
             return Environment.GetEnvironmentVariable("CompanyName");
         }
-        
+
+        public static string JIRAUrl()
+        {
+            return Environment.GetEnvironmentVariable("JIRAUrl");
+        }
+
+        public static string JIRAUser()
+        {
+            return Environment.GetEnvironmentVariable("JIRAUser");
+        }
+
+        public static string JIRAToken()
+        {
+            return Environment.GetEnvironmentVariable("JIRAToken");
+        }
+
+        public static string JIRAResolveStatus()
+        {
+            return Environment.GetEnvironmentVariable("JIRAResolveStatus");
+        }
+
+        public static string JIRAParentEpicKey()
+        {
+            return Environment.GetEnvironmentVariable("JIRAParentEpicKey");
+        }
+
+        public static string JIRAProjectKey()
+        {
+            return Environment.GetEnvironmentVariable("JIRAProjectKey");
+        }
     }
 }
 

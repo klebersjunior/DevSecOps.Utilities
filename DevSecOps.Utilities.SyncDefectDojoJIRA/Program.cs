@@ -1,4 +1,6 @@
-using DevSecOps.Utilities.SyncAzDevOpsDefectDojo;
+using DevSecOps.Utilities.SyncDefectDojoJIRA;
+
+
 
 
 var builder = Host.CreateApplicationBuilder(args);

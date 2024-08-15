@@ -37,6 +37,20 @@ namespace DevSecOps.Utilities.Infra.Services.DefectDojo
 			return products;
 		}
 
+        public ProductSearchResponseModel GetProjects()
+        {
+            var parameters = new Dictionary<string, string>();
+           
+            var headers = new Dictionary<string, string>();
+            headers.Add("Authorization", $"Token {token}");
+
+            var response = httpService.GetApiAsync(urlBase + "/api/v2/products/", parameters, headers).Result;
+
+            ProductSearchResponseModel products = JsonConvert.DeserializeObject<ProductSearchResponseModel>(response);
+
+            return products;
+        }
+
         public ProductModel CreateProject(string projectName)
 		{
 			var headers = new Dictionary<string, string>();
@@ -62,6 +76,21 @@ namespace DevSecOps.Utilities.Infra.Services.DefectDojo
         {
             var parameters = new Dictionary<string, string>();
             parameters.Add("name", $"{projectName}_{typeEngagement}");
+
+            var headers = new Dictionary<string, string>();
+            headers.Add("Authorization", $"Token {token}");
+
+            var response = httpService.GetApiAsync(urlBase + "/api/v2/engagements/", parameters, headers).Result;
+
+            EngagementResponseModel engagement = JsonConvert.DeserializeObject<EngagementResponseModel>(response);
+
+            return engagement;
+        }
+
+        public EngagementResponseModel SearchEngagement(string projectId)
+        {
+            var parameters = new Dictionary<string, string>();
+            parameters.Add("product", projectId);
 
             var headers = new Dictionary<string, string>();
             headers.Add("Authorization", $"Token {token}");
@@ -156,6 +185,47 @@ namespace DevSecOps.Utilities.Infra.Services.DefectDojo
 
             var response = httpService.GetApiAsync(urlBase + "/api/v2/findings/", parameters, headers).Result;
             return JsonConvert.DeserializeObject<DDSearchFindingModel>(response);
+
+        }
+
+        public DDSearchFindingModel SearchFindingsByProjectName(string projectName)
+        {
+            var parameters = new Dictionary<string, string>();
+            parameters.Add("product_name", projectName);
+
+            var headers = new Dictionary<string, string>();
+            headers.Add("Authorization", $"Token {token}");
+
+            var response = httpService.GetApiAsync(urlBase + "/api/v2/findings/", parameters, headers).Result;
+            return JsonConvert.DeserializeObject<DDSearchFindingModel>(response);
+
+        }
+
+        public DDFindingTagsResponseModel GetFindingsTags(int findingId)
+        {
+            var parameters = new Dictionary<string, string>();
+            
+
+            var headers = new Dictionary<string, string>();
+            headers.Add("Authorization", $"Token {token}");
+
+            var response = httpService.GetApiAsync(urlBase + $"/api/v2/findings/{findingId}/tags/", parameters, headers).Result;
+            return JsonConvert.DeserializeObject<DDFindingTagsResponseModel>(response);
+
+        }
+
+        public DDFindingTagsResponseModel AddFindingTags(int findingId, List<string> tags)
+        {
+            DDFindingTagsResponseModel request = new DDFindingTagsResponseModel();
+            request.Tags = tags;
+
+
+            var headers = new Dictionary<string, string>();
+            headers.Add("Authorization", $"Token {token}");
+
+            var response = httpService.PostApiAsync(urlBase + $"/api/v2/findings/{findingId}/tags/" , JsonConvert.SerializeObject(request), headers: headers).Result;
+
+            return JsonConvert.DeserializeObject<DDFindingTagsResponseModel>(response);
 
         }
 

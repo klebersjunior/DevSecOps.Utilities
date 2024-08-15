@@ -392,7 +392,7 @@ namespace DevSecOps.Utilities.Infra.Model.DefectDojo
         public string Cvssv3 { get; set; }
 
         [JsonProperty("cvssv3_score", NullValueHandling = NullValueHandling.Ignore)]
-        public int? Cvssv3Score { get; set; }
+        public double? Cvssv3Score { get; set; }
 
         [JsonProperty("url", NullValueHandling = NullValueHandling.Ignore)]
         public string Url { get; set; }
@@ -875,7 +875,7 @@ namespace DevSecOps.Utilities.Infra.Model.DefectDojo
         public string Cvssv3 { get; set; }
 
         [JsonProperty("cvssv3_score", NullValueHandling = NullValueHandling.Ignore)]
-        public int? Cvssv3Score { get; set; }
+        public double? Cvssv3Score { get; set; }
 
         [JsonProperty("url", NullValueHandling = NullValueHandling.Ignore)]
         public string Url { get; set; }
@@ -1358,7 +1358,7 @@ namespace DevSecOps.Utilities.Infra.Model.DefectDojo
         public string Cvssv3 { get; set; }
 
         [JsonProperty("cvssv3_score", NullValueHandling = NullValueHandling.Ignore)]
-        public int? Cvssv3Score { get; set; }
+        public double? Cvssv3Score { get; set; }
 
         [JsonProperty("url", NullValueHandling = NullValueHandling.Ignore)]
         public string Url { get; set; }
@@ -2116,7 +2116,7 @@ namespace DevSecOps.Utilities.Infra.Model.DefectDojo
         public string Cvssv3 { get; set; }
 
         [JsonProperty("cvssv3_score", NullValueHandling = NullValueHandling.Ignore)]
-        public int? Cvssv3Score { get; set; }
+        public double? Cvssv3Score { get; set; }
 
         [JsonProperty("url", NullValueHandling = NullValueHandling.Ignore)]
         public string Url { get; set; }
