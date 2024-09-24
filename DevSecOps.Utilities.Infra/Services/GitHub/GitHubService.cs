@@ -23,6 +23,7 @@ namespace DevSecOps.Utilities.Infra.Services.GitHub
         {
             Console.WriteLine("ORGNAME :" + orgName);
 
+            Console.WriteLine("GITPASS :" + UtilEnviroment.GitPass());
 
             List<GitHubSearchResponse> results = new List<GitHubSearchResponse>();
 
