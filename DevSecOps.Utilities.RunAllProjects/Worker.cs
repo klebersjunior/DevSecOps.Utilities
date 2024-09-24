@@ -20,6 +20,26 @@ public class Worker : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        var executeModulesVariable = System.Environment.GetEnvironmentVariable("Execution");
+        bool executeTruflehog = true;
+        bool executeCdxGen = true;
+
+        if (!string.IsNullOrEmpty(executeModulesVariable))
+        {
+            var executeModules = executeModulesVariable.Split(',');
+
+            if (executeModules.Any(x => x == "truflehog"))
+                executeTruflehog = true;
+            else
+                executeTruflehog = false;
+
+            if (executeModules.Any(x => x == "cdxgen"))
+                executeCdxGen = true;
+            else
+                executeCdxGen = false;
+        }
+
+
         while (!stoppingToken.IsCancellationRequested)
         {
             if (_logger.IsEnabled(LogLevel.Information))
@@ -72,7 +92,8 @@ public class Worker : BackgroundService
                             test = testInfo.Results.FirstOrDefault();
                         }
 
-                        trufflehogService.ExecuteScan(test);
+                        if(executeTruflehog)
+                            trufflehogService.ExecuteScan(test);
 
                         DependencyTrackService dependencyTrackService = new DependencyTrackService(UtilEnviroment.DependencyTrackUrl(), UtilEnviroment.DependencyTrackToken());
 
@@ -93,16 +114,19 @@ public class Worker : BackgroundService
                             }
                         }
 
-                        CdxgenService cdxgenService = new CdxgenService(project.Name, project.CloneUrl);
-                        var result = cdxgenService.ExecuteScan(test);
+                        if (executeCdxGen)
+                        {
+                            CdxgenService cdxgenService = new CdxgenService(project.Name, project.CloneUrl);
+                            var result = cdxgenService.ExecuteScan(test);
 
-                        var base64result = result.ToString().EncodeToBase64();
+                            var base64result = result.ToString().EncodeToBase64();
 
-                        ProjectUploadModel projectUpload = new ProjectUploadModel();
-                        projectUpload.bom = base64result;
-                        projectUpload.project = dTrackProject.Uuid;
+                            ProjectUploadModel projectUpload = new ProjectUploadModel();
+                            projectUpload.bom = base64result;
+                            projectUpload.project = dTrackProject.Uuid;
 
-                        await dependencyTrackService.UploadBOM(projectUpload);
+                            await dependencyTrackService.UploadBOM(projectUpload);
+                        }
                     }
                     catch (Exception ex)
                     {
