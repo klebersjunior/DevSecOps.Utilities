@@ -131,12 +131,10 @@ namespace DevSecOps.Utilities.Infra.Service
             {
                 using (HttpClient client = new HttpClient())
                 {
-                    if (!string.IsNullOrEmpty(arg))
-                        client.BaseAddress = new Uri($"{_urlapisf}?{arg}");
-                    else
-                        client.BaseAddress = new Uri($"{_urlapisf}");
+                    client.BaseAddress = new Uri(baseurl);
                     client.DefaultRequestHeaders.Accept.Clear();
                     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                    client.Timeout = new TimeSpan(0, 1, 0);
 
                     if (headers != null)
                     {
@@ -148,7 +146,7 @@ namespace DevSecOps.Utilities.Infra.Service
 
                     try
                     {
-                        using (HttpResponseMessage response = await client.DeleteAsync(_argument))
+                        using (HttpResponseMessage response = await client.DeleteAsync(baseurl))
                         {
                             if (response.IsSuccessStatusCode)
                             {

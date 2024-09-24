@@ -2,7 +2,6 @@ using DevSecOps.Utilities.SyncDefectDojoJIRA;
 
 
 
-
 var builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddHostedService<Worker>();
 

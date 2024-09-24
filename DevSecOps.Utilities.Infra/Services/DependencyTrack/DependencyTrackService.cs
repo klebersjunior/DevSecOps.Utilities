@@ -51,12 +51,16 @@ namespace DevSecOps.Utilities.Infra.Services.DependencyTrack
 
         public void DeleteProject(string projectId)
         {
-            var parameters = new Dictionary<string, string>();
+            try
+            {
+                var parameters = new Dictionary<string, string>();
 
-            var headers = new Dictionary<string, string>();
-            headers.Add("X-Api-Key", token);
+                var headers = new Dictionary<string, string>();
+                headers.Add("X-Api-Key", token);
 
-            var response = httpService.DeleteApiAsync($"{urlBase}/api/v1/project/"+projectId, string.Empty, null, headers).Result;
+                var response = httpService.DeleteApiAsync($"{urlBase}/api/v1/project/" + projectId, string.Empty, null, headers).Result;
+            }
+            catch { }
         }
 
         public ProjectDTModel CreateProject(string projectName, string engagementId)

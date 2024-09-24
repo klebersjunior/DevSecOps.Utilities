@@ -28,6 +28,7 @@ namespace DevSecOps.Utilities.SyncDefectDojoJIRA
                     
                     Atlassian.Jira.Jira jiraConn = Atlassian.Jira.Jira.CreateRestClient(UtilEnviroment.JIRAUrl(), UtilEnviroment.JIRAUser(), UtilEnviroment.JIRAToken());
 
+
                     string EpicKey = UtilEnviroment.JIRAParentEpicKey();
 
                     DefectDojoService defectDojoService = new DefectDojoService(UtilEnviroment.DefectDojoUrl(), UtilEnviroment.DefectDojoToken());
@@ -95,16 +96,16 @@ namespace DevSecOps.Utilities.SyncDefectDojoJIRA
                                     switch (finding.Severity)
                                     {
                                         case "Critical":
-                                            issue.Priority = "Highest";
+                                            issue.Priority = "Crítico";
                                             break;
                                         case "High":
-                                            issue.Priority = "High";
+                                            issue.Priority = "Alto";
                                             break;
                                         case "Medium":
-                                            issue.Priority = "Medium";
+                                            issue.Priority = "Médio";
                                             break;
                                         case "Low":
-                                            issue.Priority = "Low";
+                                            issue.Priority = "Baixo";
                                             break;
                                     }
 
@@ -132,15 +133,26 @@ namespace DevSecOps.Utilities.SyncDefectDojoJIRA
                                     issue.Summary = finding.Title;
                                     issue.Description = description.ToString();
 
-                                    if(finding.Cwe > 0)
-                                        issue["CWE"] = $"CWE-{finding.Cwe}";
+                                    try
+                                    {
+                                        if (finding.Cwe > 0)
+                                            issue["CWE"] = $"CWE-{finding.Cwe}";
+                                    }
+                                    catch { }
 
-                                    if(finding.VulnerabilityIds.Count > 0)
-                                        issue["CVE"] = finding.VulnerabilityIds.FirstOrDefault().Vulnerability_Id;
+                                    try
+                                    {
+                                        if (finding.VulnerabilityIds.Count > 0)
+                                            issue["CVE"] = finding.VulnerabilityIds.FirstOrDefault().Vulnerability_Id;
+                                    }
+                                    catch { }
 
-                                    
-                                    issue["ID Externo"] = $"{finding.Id}";
 
+                                    try
+                                    {
+                                        issue["ID Externo"] = $"{finding.Id}";
+                                    }
+                                    catch { }
                                     var createdIssue = await issue.SaveChangesAsync();
 
                                     //Add DD Tag

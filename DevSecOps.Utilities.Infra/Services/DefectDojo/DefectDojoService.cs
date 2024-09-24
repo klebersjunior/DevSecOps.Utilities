@@ -51,6 +51,21 @@ namespace DevSecOps.Utilities.Infra.Services.DefectDojo
             return products;
         }
 
+        public void DeleteProject(int id)
+        {
+            try
+            {
+                var parameters = new Dictionary<string, string>();
+
+                var headers = new Dictionary<string, string>();
+                headers.Add("Authorization", $"Token {token}");
+
+                var result = httpService.DeleteApiAsync(urlBase + "/api/v2/products/" + id + "/", string.Empty, parameters, headers).Result;
+            }
+            catch { }
+        }
+        
+
         public ProductModel CreateProject(string projectName)
 		{
 			var headers = new Dictionary<string, string>();
