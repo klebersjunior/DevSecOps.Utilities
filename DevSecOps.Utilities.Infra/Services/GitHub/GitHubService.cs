@@ -21,6 +21,9 @@ namespace DevSecOps.Utilities.Infra.Services.GitHub
 
         public List<GitHubSearchResponse> SearchGithubProjects(string orgName)
         {
+            Console.WriteLine("ORGNAME :" + orgName);
+
+
             List<GitHubSearchResponse> results = new List<GitHubSearchResponse>();
 
             
