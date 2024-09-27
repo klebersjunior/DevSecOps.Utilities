@@ -32,6 +32,8 @@ namespace DevSecOps.Utilities.Infra.Services.Trufflehog
 
         public string ExecuteScan(TestModel test)
         {
+            Thread.Sleep(1000 * 10); // Await 10 segundos de intervalo entre as execucoes dos processos.
+
             Process process = new Process();
             process.StartInfo.FileName = "trufflehog";
             string argument = $"git https://{this.GitUser}:{this.GitPass}@{this.GitUrl.Replace("https://", "")} --json";
@@ -152,6 +154,8 @@ namespace DevSecOps.Utilities.Infra.Services.Trufflehog
                     throw new Exception("Program time out");
                 }
             }
+
+            
 
         }
 

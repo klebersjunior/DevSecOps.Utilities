@@ -127,6 +127,8 @@ public class Worker : BackgroundService
 
                             await dependencyTrackService.UploadBOM(projectUpload);
                         }
+
+                        Thread.Sleep(1000 * 10); // Aguarda 10 segundos para dar tempo de processar proximo projeto
                     }
                     catch (Exception ex)
                     {
